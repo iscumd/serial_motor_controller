@@ -1,10 +1,8 @@
-#include "roboteq_motor_controller.h"
+#include "serial_motor_controller.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include <sstream>
-
-#include <isc_shared_msgs/EncoderCounts.h>
 
 #define SIGN(x) (x > 0 ? 1 : -1)
 
@@ -15,7 +13,7 @@ class roboteq_mdc2460 : public serial_motor_controller {
 
 		bool send(std::string cmd) {
 			cmd += "\r";
-			return roboteq_motor_controller::send(cmd);
+			return serial_motor_controller::send(cmd);
 		};
 
 		bool startup();
@@ -34,5 +32,5 @@ class roboteq_mdc2460 : public serial_motor_controller {
 
 		std::stringstream msg_builder;
 
-		ros::Publisher encoder_output;
+		// ros::Publisher encoder_output;
 };

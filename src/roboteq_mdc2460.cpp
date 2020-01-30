@@ -17,12 +17,16 @@ roboteq_mdc2460::roboteq_mdc2460() {
 	ros::NodeHandle nh;
 	ros::NodeHandle nh_private("~");
 
-	nh_private.param("device", device_name, "/dev/ttyUSB0");
+	nh_private.param("device", device_name, std::string("/dev/ttyUSB0"));
 	nh_private.param("gear_reduction", gear_reduction, 1.0);
 	nh_private.param("has_encoders", has_encoders, false);
 
 	control_input = nh.subscribe("control_vel", 1, &roboteq_mdc2460::control_cb, this);
-	encoder_output = nh.advertise<isc_shared_msgs::EncoderCounts>("encoder_counts", 1000);
+	// encoder_output = nh.advertise<isc_shared_msgs::EncoderCounts>("encoder_counts", 1000);
+}
+
+roboteq_mdc2460::~roboteq_mdc2460() {
+	shutdown();
 }
 
 bool roboteq_mdc2460::startup() {
@@ -36,22 +40,21 @@ bool roboteq_mdc2460::startup() {
 	serial_port.setBytesize(serial::eightbits);
 	serial_port.setParity(serial::parity_none);
 	serial_port.setStopbits(serial::stopbits_one);
-	serial_port.setTimeout(serial::Timeout::simpleTimeout(10));
+
+	serial::Timeout t = serial::Timeout::simpleTimeout(10);
+	serial_port.setTimeout(t);
 
 	// configure the serial listener
 	serial_listener.setChunkSize(64);
-	serial_listener.setTokenizer(serial::utils::SerialListener::delimite_tokenizer("\r\n"));
+	serial_listener.setTokenizer(serial::utils::SerialListener::delimeter_tokenizer("\r\n"));
 	serial_listener.setDefaultHandler(boost::bind(&roboteq_mdc2460::receive, this, _1));
 	
 	// open port and start listening
 	try {
 		serial_port.open();
 		serial_listener.startListening(serial_port);
-	} catch (serial::SerialException &e) {
-		ROS_ERROR("Unable to open serial port!: %s", e.what());
-		return false;
-	} catch (serial::IOException &e) {
-		ROS_ERROR("Unable to open serial port!: %s", e.what());
+	} catch (const std::exception &e) {
+		ROS_ERROR("Serial exception!: %s", e.what());
 		return false;
 	}
 	
@@ -73,8 +76,8 @@ void roboteq_mdc2460::control_cb(const geometry_msgs::Twist::ConstPtr &cmd) {
 	std::string left_move_cmd = "!G 1 ";
 	std::string right_move_cmd = "!G 2 ";
 	
-	left_move_cmd += boost::lexical_cast<std::string>(constrain_speed(wheel_speeds.first()));
-	right_move_cmd += boost::lexical_cast<std::string>(constrain_speed(wheel_speeds.second()));
+	left_move_cmd += boost::lexical_cast<std::string>(constrain_speed(wheel_speeds.first));
+	right_move_cmd += boost::lexical_cast<std::string>(constrain_speed(wheel_speeds.second));
 
 	send(left_move_cmd);
 	send(right_move_cmd);
