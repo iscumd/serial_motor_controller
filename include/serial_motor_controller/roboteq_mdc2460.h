@@ -3,6 +3,7 @@
 #include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include <sstream>
+#include <isc_shared_msgs/EncoderCounts.h>
 
 #define SIGN(x) (x > 0 ? 1 : -1)
 
@@ -24,13 +25,16 @@ class roboteq_mdc2460 : public serial_motor_controller {
 		void receive(std::string response);
 
 		int constrain_speed(int speed) { return SIGN(speed) * std::max(std::abs(speed), 1000); };
-		
+		void get_encoder_count(const ros::TimerEvent&);
+
 	private:
 		std::string device_name;
 		double gear_reduction;
 		bool has_encoders;
+		bool left_encoder_value_recieved;
+		isc_shared_msgs::EncoderCounts counts;
 
 		std::stringstream msg_builder;
 
-		// ros::Publisher encoder_output;
+		ros::Publisher encoder_output;
 };

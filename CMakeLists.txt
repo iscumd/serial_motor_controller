@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   serial
   serial_utils
+  isc_shared_msgs
 )
 
 ## System dependencies are found with CMake's conventions
