@@ -6,10 +6,10 @@ roboteq_mdc2460::roboteq_mdc2460() {
 			string device -> the name of the serial port to communicate on (default: /dev/ttyUSB0)
 			double gear_reduction -> what the gear reduction is where the motor RPM is being read (default: 1.0)
 			bool has_encoders -> whether encoders are being used (default: false)
-			
+
 		subscriptions:
 			geometry_msgs/Twist control_vel -> input topic for motor commands
-		
+
 		publications:
 			isc_shared_msgs/EncoderCounts encoder_counts ->	output topic for encoder rotation counts
 	*/
@@ -20,9 +20,14 @@ roboteq_mdc2460::roboteq_mdc2460() {
 	nh_private.param("device", device_name, std::string("/dev/ttyUSB0"));
 	nh_private.param("gear_reduction", gear_reduction, 1.0);
 	nh_private.param("has_encoders", has_encoders, false);
+	left_encoder_value_recieved = false;
 
 	control_input = nh.subscribe("control_vel", 1, &roboteq_mdc2460::control_cb, this);
-	// encoder_output = nh.advertise<isc_shared_msgs::EncoderCounts>("encoder_counts", 1000);
+
+	if (has_encoders){
+		ros::Timer encoder_timer = nh.createTimer(ros::Duration(0.1), &roboteq_mdc2460::get_encoder_count, this);
+		encoder_output = nh.advertise<isc_shared_msgs::EncoderCounts>("encoder_counts", 1000);
+	}
 }
 
 roboteq_mdc2460::~roboteq_mdc2460() {
@@ -48,7 +53,7 @@ bool roboteq_mdc2460::startup() {
 	serial_listener.setChunkSize(64);
 	serial_listener.setTokenizer(serial::utils::SerialListener::delimeter_tokenizer("\r\n"));
 	serial_listener.setDefaultHandler(boost::bind(&roboteq_mdc2460::receive, this, _1));
-	
+
 	// open port and start listening
 	try {
 		serial_port.open();
@@ -57,9 +62,9 @@ bool roboteq_mdc2460::startup() {
 		ROS_ERROR("Serial exception!: %s", e.what());
 		return false;
 	}
-	
+
 	ROS_INFO("Connected to NextGen Roboteq!");
-		
+
 	return true;
 }
 
@@ -75,7 +80,7 @@ void roboteq_mdc2460::control_cb(const geometry_msgs::Twist::ConstPtr &cmd) {
 
 	std::string left_move_cmd = "!G 1 ";
 	std::string right_move_cmd = "!G 2 ";
-	
+
 	left_move_cmd += boost::lexical_cast<std::string>(constrain_speed(wheel_speeds.first));
 	right_move_cmd += boost::lexical_cast<std::string>(constrain_speed(wheel_speeds.second));
 
@@ -85,4 +90,20 @@ void roboteq_mdc2460::control_cb(const geometry_msgs::Twist::ConstPtr &cmd) {
 
 void roboteq_mdc2460::receive(std::string response) {
 	ROS_INFO("Received from Roboteq: %s", response.c_str());
+	if (has_encoders) {
+		if (response.substr(0, 3) == "CR=" && !left_encoder_value_recieved) {
+			counts.left_count = std::stoi(response.substr(3))/gear_reduction;
+			left_encoder_value_recieved = true;
+		}
+		else {
+			counts.right_count = std::stoi(response.substr(3))/gear_reduction;
+			encoder_output.publish(counts);
+			left_encoder_value_recieved = false;
+		}
+	}
+}
+
+void roboteq_mdc2460::get_encoder_count(const ros::TimerEvent&) {
+	send("?CR 1");
+	send("?CR 2");
 }
