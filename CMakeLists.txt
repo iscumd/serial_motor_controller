@@ -135,7 +135,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(roboteq_mdc2460_node src/roboteq_mdc2460_node.cpp src/roboteq_mdc2460.cpp)
+add_executable(roboteq_mdc2460_node src/nodes/roboteq_mdc2460_node.cpp src/roboteq_mdc2460.cpp)
 add_dependencies(roboteq_mdc2460_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(roboteq_mdc2460_node ${catkin_LIBRARIES})
 

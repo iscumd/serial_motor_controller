@@ -5,36 +5,39 @@
 #include <sstream>
 #include <isc_shared_msgs/EncoderCounts.h>
 
-#define SIGN(x) (x > 0 ? 1 : -1)
+namespace serial_motor_controller
+{
+class roboteq_mdc2460 : public serial_motor_controller
+{
+public:
+  roboteq_mdc2460();
 
-class roboteq_mdc2460 : public serial_motor_controller {
-	public:
-		roboteq_mdc2460();
-		~roboteq_mdc2460();
+  ~roboteq_mdc2460();
 
-		bool send(std::string cmd) {
-			cmd += "\r";
-			return serial_motor_controller::send(cmd);
-		};
+  bool startup();
 
-		bool startup();
-		void shutdown();
+  void shutdown();
 
-		void control_cb(const geometry_msgs::Twist::ConstPtr &cmd);
+  bool send(const std::string& command);
 
-		void receive(std::string response);
+  void control_cb(const geometry_msgs::Twist::ConstPtr& command);
 
-		int constrain_speed(int speed) { return SIGN(speed) * std::max(std::abs(speed), 1000); };
-		void get_encoder_count(const ros::TimerEvent&);
+  void receive(const std::string& response);
 
-	private:
-		std::string device_name;
-		double gear_reduction;
-		bool has_encoders;
-		bool left_encoder_value_recieved;
-		isc_shared_msgs::EncoderCounts counts;
+  int constrain_speed(const int& speed, const int& max_speed);
 
-		std::stringstream msg_builder;
+  void get_encoder_count(const ros::TimerEvent&);
 
-		ros::Publisher encoder_output;
+private:
+  std::string device_name;
+  double gear_reduction;
+  bool has_encoders;
+  bool left_encoder_value_recieved;
+  isc_shared_msgs::EncoderCounts counts;
+
+  std::stringstream msg_builder;
+
+  ros::Publisher encoder_output;
+  ros::Subscriber control_input;
 };
+}  // namespace serial_motor_controller
