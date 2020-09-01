@@ -81,8 +81,8 @@ void roboteq_mdc2460::control_cb(const geometry_msgs::Twist::ConstPtr& command)
   std::string left_move_cmd = "!G 1 ";
   std::string right_move_cmd = "!G 2 ";
 
-  left_move_cmd += boost::lexical_cast<std::string>(constrain_speed(wheel_speeds.first, 10000));
-  right_move_cmd += boost::lexical_cast<std::string>(constrain_speed(wheel_speeds.second, 10000));
+  left_move_cmd += boost::lexical_cast<std::string>(serial_motor_controller::constrain_speed(wheel_speeds.first, 10000));
+  right_move_cmd += boost::lexical_cast<std::string>(serial_motor_controller::constrain_speed(wheel_speeds.second, 10000));
 
   send(left_move_cmd);
   send(right_move_cmd);
@@ -105,11 +105,6 @@ void roboteq_mdc2460::receive(const std::string& response)
       left_encoder_value_recieved = false;
     }
   }
-}
-
-int roboteq_mdc2460::constrain_speed(const int& speed, const int& max_speed)
-{
-  return (speed > 0 ? 1 : -1) * std::max(std::abs(speed), max_speed);
 }
 
 void roboteq_mdc2460::get_encoder_count(const ros::TimerEvent&)

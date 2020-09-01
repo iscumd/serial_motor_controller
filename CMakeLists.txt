@@ -1,12 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(serial_motor_controller)
 
-## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   roscpp
@@ -138,6 +134,10 @@ include_directories(
 add_executable(roboteq_mdc2460_node src/nodes/roboteq_mdc2460_node.cpp src/roboteq_mdc2460.cpp)
 add_dependencies(roboteq_mdc2460_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(roboteq_mdc2460_node ${catkin_LIBRARIES})
+
+add_executable(sabertooth_2x12_node src/nodes/sabertooth_2x12_node.cpp src/sabertooth_2x12.cpp)
+add_dependencies(sabertooth_2x12_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(sabertooth_2x12_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##
