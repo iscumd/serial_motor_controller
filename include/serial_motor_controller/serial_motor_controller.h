@@ -28,6 +28,9 @@ protected:
   serial::Serial serial_port;
   serial::utils::SerialListener serial_listener;
 
+  serial_motor_controller() {}
+  virtual ~serial_motor_controller() {}
+
   virtual bool startup() = 0; // return true if startup was successful
   virtual void shutdown() = 0;
 
@@ -47,7 +50,7 @@ protected:
 
   int constrain_speed(const int& speed, const int& max_speed)
   {
-    return (speed > 0 ? 1 : -1) * std::max(std::abs(speed), max_speed);
+    return (speed > 0 ? 1 : -1) * std::min(std::abs(speed), max_speed);
   }
 
   std::pair<double, double> twist_to_wheel_speeds(const geometry_msgs::Twist::ConstPtr& twist)
