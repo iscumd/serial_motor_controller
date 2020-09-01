@@ -24,8 +24,6 @@ public:
 
   void receive(const std::string& response);
 
-  int constrain_speed(const int& speed, const int& max_speed);
-
   void get_encoder_count(const ros::TimerEvent&);
 
 private:

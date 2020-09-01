@@ -107,11 +107,6 @@ void roboteq_mdc2460::receive(const std::string& response)
   }
 }
 
-int roboteq_mdc2460::constrain_speed(const int& speed, const int& max_speed)
-{
-  return (speed > 0 ? 1 : -1) * std::max(std::abs(speed), max_speed);
-}
-
 void roboteq_mdc2460::get_encoder_count(const ros::TimerEvent&)
 {
   send("?CR 1");
