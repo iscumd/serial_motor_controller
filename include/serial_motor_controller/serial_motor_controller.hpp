@@ -20,21 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/header.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+
+#include <string>
 #include <memory>
+#include <exception>
 
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/header.hpp"
-
-#include <serial_motor_controller/roboteq_mdc2460.hpp>
-
-int main(int argc, char * argv[])
+namespace serial_motor_controller
 {
-  rclcpp::init(argc, argv);
-  rclcpp::executors::SingleThreadedExecutor exec;
-  rclcpp::NodeOptions options;
-  auto mdc_node = std::make_shared<serial_motor_controller::RoboteqMDC2460>(options);
-  exec.add_node(mdc_node);
-  exec.spin();
-  rclcpp::shutdown();
-  return 0;
-}
+class SerialMotorController : public rclcpp::Node
+{
+protected:
+  serial::Serial serial_port;
+  serial::utils::SerialListener serial_listener;
+  geometry_msgs::msg::Twist last_command_vel;
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr command_vel_sub;
+
+  explicit SerialMotorController(rclcpp::NodeOptions options);
+  ~SerialMotorController();
+
+  virtual bool connect(const std::string& port);
+  virtual void disconnect();
+
+  virtual void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
+  virtual bool send_command(const std::string& command);
+};
+}  // namespace serial_motor_controller

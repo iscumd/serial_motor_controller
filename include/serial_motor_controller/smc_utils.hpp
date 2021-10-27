@@ -20,21 +20,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <math.h>
+#include <geometry_msgs/msg/twist.hpp>
+
 #include <memory>
+#include <utility>
 
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/header.hpp"
-
-#include <serial_motor_controller/roboteq_mdc2460.hpp>
-
-int main(int argc, char * argv[])
+namespace serial_motor_controller
 {
-  rclcpp::init(argc, argv);
-  rclcpp::executors::SingleThreadedExecutor exec;
-  rclcpp::NodeOptions options;
-  auto mdc_node = std::make_shared<serial_motor_controller::RoboteqMDC2460>(options);
-  exec.add_node(mdc_node);
-  exec.spin();
-  rclcpp::shutdown();
-  return 0;
+namespace utils
+{
+
+int constrain_speed(const int& speed, const int& max_speed)
+{
+    return (speed > 0 ? 1 : -1) * std::min(std::abs(speed), max_speed);
 }
+
+std::pair<double, double> twist_to_wheel_speeds(const geometry_msgs::msg::Twist::SharedPtr msg)
+{
+    double left_speed = (msg->linear.x - msg->angular.z);
+    double right_speed = (msg->linear.x + msg->angular.z);
+    return std::make_pair(left_speed, right_speed);
+}
+
+}  // namespace utils
+}  // namespace serial_motor_controller

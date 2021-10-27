@@ -1,18 +1,17 @@
-#include "serial_motor_controller.h"
+#include <serial_motor_controller.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include <sstream>
-#include <isc_shared_msgs/EncoderCounts.h>
 
 namespace serial_motor_controller
 {
-class sabertooth_2x12 : public serial_motor_controller
+class Sabertooth2x12 : public serial_motor_controller
 {
 public:
-  sabertooth_2x12();
+  Sabertooth2x12();
 
-  ~sabertooth_2x12();
+  ~Sabertooth2x12();
 
   bool startup();
 
@@ -31,7 +30,6 @@ private:
   double gear_reduction;
   bool has_encoders;
   bool left_encoder_value_recieved;
-  isc_shared_msgs::EncoderCounts counts;
 
   std::stringstream msg_builder;
 

@@ -1,8 +1,8 @@
-#include "roboteq_mdc2460.h"
+#include "roboteq_mdc2460.hpp"
 
 namespace serial_motor_controller
 {
-roboteq_mdc2460::roboteq_mdc2460()
+RoboteqMDC2460::RoboteqMDC2460()
 {
   ros::NodeHandle nh;
   ros::NodeHandle nh_private("~");
@@ -12,16 +12,16 @@ roboteq_mdc2460::roboteq_mdc2460()
   nh_private.param("has_encoders", has_encoders, false);
   left_encoder_value_recieved = false;
 
-  control_input = nh.subscribe("control_vel", 1, &roboteq_mdc2460::control_cb, this);
+  control_input = nh.subscribe("control_vel", 1, &RoboteqMDC2460::control_cb, this);
 
   if (has_encoders)
   {
-    ros::Timer encoder_timer = nh.createTimer(ros::Duration(0.1), &roboteq_mdc2460::get_encoder_count, this);
+    ros::Timer encoder_timer = nh.createTimer(ros::Duration(0.1), &RoboteqMDC2460::get_encoder_count, this);
     encoder_output = nh.advertise<isc_shared_msgs::EncoderCounts>("encoder_counts", 1000);
   }
 }
 
-bool roboteq_mdc2460::startup()
+bool RoboteqMDC2460::startup()
 {
   if (serial_port.isOpen())
   {
@@ -41,7 +41,7 @@ bool roboteq_mdc2460::startup()
   // configure the serial listener
   serial_listener.setChunkSize(64);
   serial_listener.setTokenizer(serial::utils::SerialListener::delimeter_tokenizer("\r\n"));
-  serial_listener.setDefaultHandler(boost::bind(&roboteq_mdc2460::receive, this, _1));
+  serial_listener.setDefaultHandler(boost::bind(&RoboteqMDC2460::receive, this, _1));
 
   // open port and start listening
   try
@@ -60,7 +60,7 @@ bool roboteq_mdc2460::startup()
   return true;
 }
 
-void roboteq_mdc2460::shutdown()
+void RoboteqMDC2460::shutdown()
 {
   if (serial_port.isOpen())
   {
@@ -69,12 +69,12 @@ void roboteq_mdc2460::shutdown()
   }
 }
 
-bool roboteq_mdc2460::send(const std::string& command)
+bool RoboteqMDC2460::send(const std::string& command)
 {
   return serial_motor_controller::send(command + "\r");
 };
 
-void roboteq_mdc2460::control_cb(const geometry_msgs::Twist::ConstPtr& command)
+void RoboteqMDC2460::control_cb(const geometry_msgs::Twist::ConstPtr& command)
 {
   std::pair<int, int> wheel_speeds = twist_to_wheel_speeds(command);
 
@@ -88,7 +88,7 @@ void roboteq_mdc2460::control_cb(const geometry_msgs::Twist::ConstPtr& command)
   send(right_move_cmd);
 }
 
-void roboteq_mdc2460::receive(const std::string& response)
+void RoboteqMDC2460::receive(const std::string& response)
 {
   ROS_INFO("Received from Roboteq: %s", response.c_str());
   if (has_encoders)
@@ -107,13 +107,13 @@ void roboteq_mdc2460::receive(const std::string& response)
   }
 }
 
-void roboteq_mdc2460::get_encoder_count(const ros::TimerEvent&)
+void RoboteqMDC2460::get_encoder_count(const ros::TimerEvent&)
 {
   send("?CR 1");
   send("?CR 2");
 }
 
-roboteq_mdc2460::~roboteq_mdc2460()
+RoboteqMDC2460::~RoboteqMDC2460()
 {
   shutdown();
 }

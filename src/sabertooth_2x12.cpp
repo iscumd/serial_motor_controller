@@ -1,8 +1,8 @@
-#include "sabertooth_2x12.h"
+#include "sabertooth_2x12.hpp"
 
 namespace serial_motor_controller
 {
-sabertooth_2x12::sabertooth_2x12()
+Sabertooth2x12::Sabertooth2x12()
 {
   ros::NodeHandle nh;
   ros::NodeHandle nh_private("~");
@@ -12,16 +12,16 @@ sabertooth_2x12::sabertooth_2x12()
   nh_private.param("has_encoders", has_encoders, false);
   left_encoder_value_recieved = false;  //?
 
-  control_input = nh.subscribe("control_vel", 1, &sabertooth_2x12::control_cb, this);
+  control_input = nh.subscribe("control_vel", 1, &Sabertooth2x12::control_cb, this);
 
   if (has_encoders)
   {
-    ros::Timer encoder_timer = nh.createTimer(ros::Duration(0.1), &sabertooth_2x12::get_encoder_count, this);
+    ros::Timer encoder_timer = nh.createTimer(ros::Duration(0.1), &Sabertooth2x12::get_encoder_count, this);
     encoder_output = nh.advertise<isc_shared_msgs::EncoderCounts>("encoder_counts", 1000);
   }
 }
 
-bool sabertooth_2x12::startup()
+bool Sabertooth2x12::startup()
 {
   if (serial_port.isOpen())
   {
@@ -46,7 +46,7 @@ bool sabertooth_2x12::startup()
   // configure the serial listener
   serial_listener.setChunkSize(64);
   serial_listener.setTokenizer(serial::utils::SerialListener::delimeter_tokenizer("\r\n"));
-  serial_listener.setDefaultHandler(boost::bind(&sabertooth_2x12::receive, this, _1));
+  serial_listener.setDefaultHandler(boost::bind(&Sabertooth2x12::receive, this, _1));
 
   // open port and start listening
   try
@@ -65,7 +65,7 @@ bool sabertooth_2x12::startup()
   return true;
 }
 
-void sabertooth_2x12::shutdown()
+void Sabertooth2x12::shutdown()
 {
   if (serial_port.isOpen())
   {
@@ -74,12 +74,12 @@ void sabertooth_2x12::shutdown()
   }
 }
 
-bool sabertooth_2x12::send(const std::string& command)
+bool Sabertooth2x12::send(const std::string& command)
 {
   return serial_motor_controller::send(command + "\r");
 };
 
-void sabertooth_2x12::control_cb(const geometry_msgs::Twist::ConstPtr& command)
+void Sabertooth2x12::control_cb(const geometry_msgs::Twist::ConstPtr& command)
 {
   std::pair<int, int> wheel_speeds = twist_to_wheel_speeds(command);
 
@@ -93,7 +93,7 @@ void sabertooth_2x12::control_cb(const geometry_msgs::Twist::ConstPtr& command)
   send(right_move_cmd);
 }
 
-void sabertooth_2x12::receive(const std::string& response)
+void Sabertooth2x12::receive(const std::string& response)
 {
   ROS_INFO("Received from Roboteq: %s", response.c_str());
   if (has_encoders)
@@ -112,7 +112,7 @@ void sabertooth_2x12::receive(const std::string& response)
   }
 }
 
-void sabertooth_2x12::get_encoder_count(const ros::TimerEvent&)
+void Sabertooth2x12::get_encoder_count(const ros::TimerEvent&)
 {
   //now we have to capture them from the arduino.
 
@@ -121,7 +121,7 @@ void sabertooth_2x12::get_encoder_count(const ros::TimerEvent&)
   send("?CR 2");
 }
 
-sabertooth_2x12::~sabertooth_2x12()
+Sabertooth2x12::~Sabertooth2x12()
 {
   shutdown();
 }

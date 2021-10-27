@@ -25,15 +25,15 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/header.hpp"
 
-#include <serial_motor_controller/roboteq_mdc2460.hpp>
+#include <serial_motor_controller/roboteq_hdc2460.hpp>
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor exec;
   rclcpp::NodeOptions options;
-  auto mdc_node = std::make_shared<serial_motor_controller::RoboteqMDC2460>(options);
-  exec.add_node(mdc_node);
+  auto hdc_node = std::make_shared<serial_motor_controller::RoboteqHDC2460>(options);
+  exec.add_node(hdc_node);
   exec.spin();
   rclcpp::shutdown();
   return 0;
