@@ -7,12 +7,12 @@
 
 namespace serial_motor_controller
 {
-class roboteq_mdc2460 : public serial_motor_controller
+class sabertooth_2x12 : public serial_motor_controller
 {
 public:
-  roboteq_mdc2460();
+  sabertooth_2x12();
 
-  ~roboteq_mdc2460();
+  ~sabertooth_2x12();
 
   bool startup();
 
