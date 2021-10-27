@@ -1,8 +1,8 @@
-#include "roboteq_mdc2460.h"
+#include "sabertooth_2x12.h"
 
 namespace serial_motor_controller
 {
-roboteq_mdc2460::roboteq_mdc2460()
+sabertooth_2x12::sabertooth_2x12()
 {
   ros::NodeHandle nh;
   ros::NodeHandle nh_private("~");
@@ -10,18 +10,18 @@ roboteq_mdc2460::roboteq_mdc2460()
   nh_private.param("device", device_name, std::string("/dev/ttyUSB0"));
   nh_private.param("gear_reduction", gear_reduction, 1.0);
   nh_private.param("has_encoders", has_encoders, false);
-  left_encoder_value_recieved = false;
+  left_encoder_value_recieved = false;  //?
 
-  control_input = nh.subscribe("control_vel", 1, &roboteq_mdc2460::control_cb, this);
+  control_input = nh.subscribe("control_vel", 1, &sabertooth_2x12::control_cb, this);
 
   if (has_encoders)
   {
-    ros::Timer encoder_timer = nh.createTimer(ros::Duration(0.1), &roboteq_mdc2460::get_encoder_count, this);
+    ros::Timer encoder_timer = nh.createTimer(ros::Duration(0.1), &sabertooth_2x12::get_encoder_count, this);
     encoder_output = nh.advertise<isc_shared_msgs::EncoderCounts>("encoder_counts", 1000);
   }
 }
 
-bool roboteq_mdc2460::startup()
+bool sabertooth_2x12::startup()
 {
   if (serial_port.isOpen())
   {
@@ -38,10 +38,15 @@ bool roboteq_mdc2460::startup()
   serial::Timeout t = serial::Timeout::simpleTimeout(10);
   serial_port.setTimeout(t);
 
+
+
+  //we really don't be listening to the sabertooth though.
+  //Can I remove all of this?
+
   // configure the serial listener
   serial_listener.setChunkSize(64);
   serial_listener.setTokenizer(serial::utils::SerialListener::delimeter_tokenizer("\r\n"));
-  serial_listener.setDefaultHandler(boost::bind(&roboteq_mdc2460::receive, this, _1));
+  serial_listener.setDefaultHandler(boost::bind(&sabertooth_2x12::receive, this, _1));
 
   // open port and start listening
   try
@@ -60,7 +65,7 @@ bool roboteq_mdc2460::startup()
   return true;
 }
 
-void roboteq_mdc2460::shutdown()
+void sabertooth_2x12::shutdown()
 {
   if (serial_port.isOpen())
   {
@@ -69,12 +74,12 @@ void roboteq_mdc2460::shutdown()
   }
 }
 
-bool roboteq_mdc2460::send(const std::string& command)
+bool sabertooth_2x12::send(const std::string& command)
 {
   return serial_motor_controller::send(command + "\r");
 };
 
-void roboteq_mdc2460::control_cb(const geometry_msgs::Twist::ConstPtr& command)
+void sabertooth_2x12::control_cb(const geometry_msgs::Twist::ConstPtr& command)
 {
   std::pair<int, int> wheel_speeds = twist_to_wheel_speeds(command);
 
@@ -88,7 +93,7 @@ void roboteq_mdc2460::control_cb(const geometry_msgs::Twist::ConstPtr& command)
   send(right_move_cmd);
 }
 
-void roboteq_mdc2460::receive(const std::string& response)
+void sabertooth_2x12::receive(const std::string& response)
 {
   ROS_INFO("Received from Roboteq: %s", response.c_str());
   if (has_encoders)
@@ -107,13 +112,16 @@ void roboteq_mdc2460::receive(const std::string& response)
   }
 }
 
-void roboteq_mdc2460::get_encoder_count(const ros::TimerEvent&)
+void sabertooth_2x12::get_encoder_count(const ros::TimerEvent&)
 {
+  //now we have to capture them from the arduino.
+
+
   send("?CR 1");
   send("?CR 2");
 }
 
-roboteq_mdc2460::~roboteq_mdc2460()
+sabertooth_2x12::~sabertooth_2x12()
 {
   shutdown();
 }

@@ -50,7 +50,11 @@ protected:
 
   int constrain_speed(const int& speed, const int& max_speed)
   {
+<<<<<<< HEAD
     return (speed > 0 ? 1 : -1) * std::min(std::abs(speed), max_speed);
+=======
+    return (speed > 0 ? 1 : -1) * std::max(std::abs(speed), max_speed);
+>>>>>>> feat/sabertooth
   }
 
   std::pair<double, double> twist_to_wheel_speeds(const geometry_msgs::Twist::ConstPtr& twist)
